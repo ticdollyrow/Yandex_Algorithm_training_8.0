@@ -1,6 +1,5 @@
 package com.algo.taskC;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -45,12 +44,9 @@ public class TaskC {
                 }
             }
 
-
             dp[i] = Math.max(node.getWeight(), dp[i - 1]);
             if (index >= 0) {
-                double maxI = Math.max(dp[index], dp[index] + node.getWeight());
-                dp[i] = Math.max(maxI, dp[i]);
-
+                dp[i] = Math.max(dp[index] + node.getWeight(), dp[i]);
             }
         }
         System.out.printf("%.15f%n", dp[n-1]);
