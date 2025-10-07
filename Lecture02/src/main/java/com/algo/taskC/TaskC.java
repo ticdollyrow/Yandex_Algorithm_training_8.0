@@ -12,51 +12,79 @@ public class TaskC {
     public static void main(String[] args) throws IOException {
         FastScanner fastScanner = new FastScanner(System.in);
         int n = fastScanner.nextInt(); //количество интервалов
-        int max = 0;
+        if (n == 0) {
+            System.out.println(0);
+            return;
+        }
+
+        double eps = 1e-9; // точность сравнения
+
 
         List<Node> intervals = new ArrayList<>();
-        for(int i = 0; i < n; i++){
+        for (int i = 0; i < n; i++) {
             double begda = fastScanner.nextDouble();
             double endda = fastScanner.nextDouble();
             double weight = fastScanner.nextDouble();
             intervals.add(new Node(begda, endda, weight));
         }
 
-        intervals.sort(Comparator.comparingDouble(Node::begda)
-                .thenComparingDouble(Node::endda)
-                .thenComparingDouble(Node::weight));
+        intervals.sort(Comparator.comparingDouble(Node::getEndda)
+                .thenComparingDouble(Node::getBegda));
 
-        ArrayList<Node> list = new ArrayList<>();
-        for(var node:intervals) {
-            if(list.isEmpty()) {
-                list.add(new Node(node, node.weight()));
-                continue;
+        double[] dp = new double[n];
+        dp[0] = intervals.get(0)
+                .getWeight();
+        for (int i = 1; i < n; i++) {
+            int index = i;
+            final Node node = intervals.get(index);
+            double begda = node.getBegda();
+            for (index = index - 1; index >= 0; index--) {
+                if (begda >= intervals.get(index)
+                        .getEndda() - eps) {
+                    break;
+                }
             }
 
 
+            dp[i] = Math.max(node.getWeight(), dp[i - 1]);
+            if (index >= 0) {
+                double maxI = Math.max(dp[index], dp[index] + node.getWeight());
+                dp[i] = Math.max(maxI, dp[i]);
 
+            }
         }
-
-
-        System.out.println(max);
+        System.out.printf("%.15f%n", dp[n-1]);
     }
 
     static final class FastScanner {
         private final byte[] buf = new byte[1 << 16];
         private int len = 0, ptr = 0;
         private final InputStream in;
-        FastScanner(InputStream in) { this.in = in; }
+
+        FastScanner(InputStream in) {
+            this.in = in;
+        }
+
         int nextInt() throws IOException {
             int c, sign = 1, num = 0;
-            do { c = read(); } while (c <= ' ');
-            if (c == '-') { sign = -1; c = read(); }
-            while (c > ' ') { num = num * 10 + (c - '0'); c = read(); }
+            do {
+                c = read();
+            } while (c <= ' ');
+            if (c == '-') {
+                sign = -1;
+                c = read();
+            }
+            while (c > ' ') {
+                num = num * 10 + (c - '0');
+                c = read();
+            }
             return num * sign;
         }
 
         private int read() throws IOException {
             if (ptr >= len) {
-                len = in.read(buf); ptr = 0;
+                len = in.read(buf);
+                ptr = 0;
                 if (len < 0) return -1;
             }
             return buf[ptr++];
@@ -64,7 +92,9 @@ public class TaskC {
 
         double nextDouble() throws IOException {
             int c;
-            do { c = read(); } while (c <= ' '); // пропуск пробелов
+            do {
+                c = read();
+            } while (c <= ' '); // пропуск пробелов
 
             int sign = 1;
             if (c == '-') {
@@ -91,16 +121,30 @@ public class TaskC {
 
             return num * sign;
         }
-
     }
 }
 
-record Node(double begda, double endda, double weight, double maxWeight){
-    public Node(double begda, double endda, double weight){
-        this(begda, endda, weight, 0);
+
+class Node {
+    double begda;
+    double endda;
+    double weight;
+
+    public Node(double begda, double endda, double weight) {
+        this.begda = begda;
+        this.endda = endda;
+        this.weight = weight;
     }
 
-    public Node(Node node, double maxWeight){
-        this(node.begda(), node.endda(), node.weight(), maxWeight);
+    public double getBegda() {
+        return begda;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public double getEndda() {
+        return endda;
     }
 }
