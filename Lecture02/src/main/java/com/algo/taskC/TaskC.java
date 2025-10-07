@@ -1,5 +1,15 @@
 package com.algo.taskC;
 
+/*
+6
+0 1 1
+0.1 1 1
+0.2 1 1
+1 1.1 7
+0.3 0.5 4
+0.1 0.2 1
+ */
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -8,6 +18,8 @@ import java.util.List;
 
 /// C. Расписание для взвешенных интервалов*
 public class TaskC {
+    static final double EPS = 1e-9;// точность сравнения
+
     public static void main(String[] args) throws IOException {
         FastScanner fastScanner = new FastScanner(System.in);
         int n = fastScanner.nextInt(); //количество интервалов
@@ -15,9 +27,6 @@ public class TaskC {
             System.out.println(0);
             return;
         }
-
-        double eps = 1e-9; // точность сравнения
-
 
         List<Node> intervals = new ArrayList<>();
         for (int i = 0; i < n; i++) {
@@ -27,29 +36,41 @@ public class TaskC {
             intervals.add(new Node(begda, endda, weight));
         }
 
-        intervals.sort(Comparator.comparingDouble(Node::getEndda)
-                .thenComparingDouble(Node::getBegda));
+        intervals.sort(Comparator.comparingDouble(Node::endda)
+                .thenComparingDouble(Node::begda));
 
         double[] dp = new double[n];
         dp[0] = intervals.get(0)
-                .getWeight();
+                .weight();
         for (int i = 1; i < n; i++) {
-            int index = i;
-            final Node node = intervals.get(index);
-            double begda = node.getBegda();
-            for (index = index - 1; index >= 0; index--) {
-                if (begda >= intervals.get(index)
-                        .getEndda() - eps) {
-                    break;
-                }
-            }
-
-            dp[i] = Math.max(node.getWeight(), dp[i - 1]);
+            final Node node = intervals.get(i);
+            int index = search(intervals, i - 1, node.begda());
+            dp[i] = Math.max(node.weight(), dp[i - 1]);
             if (index >= 0) {
-                dp[i] = Math.max(dp[index] + node.getWeight(), dp[i]);
+                dp[i] = Math.max(dp[index] + node.weight(), dp[i]);
             }
         }
-        System.out.printf("%.15f%n", dp[n-1]);
+        System.out.printf("%.15f%n", dp[n - 1]);
+    }
+
+    public static int search(List<Node> intervals, int end, double begda) {
+        int index = -1;
+        int left = 0;
+        int right = end;
+
+        while (left <= right) {
+            int mid = (left + right) / 2;
+            double endda = intervals.get(mid)
+                    .endda();
+            if (begda >= endda - EPS) {
+                index = mid;
+                left = mid + 1;
+            }else{
+                right = mid - 1;
+            }
+        }
+
+        return index;
     }
 
     static final class FastScanner {
@@ -121,26 +142,5 @@ public class TaskC {
 }
 
 
-class Node {
-    double begda;
-    double endda;
-    double weight;
-
-    public Node(double begda, double endda, double weight) {
-        this.begda = begda;
-        this.endda = endda;
-        this.weight = weight;
-    }
-
-    public double getBegda() {
-        return begda;
-    }
-
-    public double getWeight() {
-        return weight;
-    }
-
-    public double getEndda() {
-        return endda;
-    }
+record Node(double begda, double endda, double weight) {
 }
