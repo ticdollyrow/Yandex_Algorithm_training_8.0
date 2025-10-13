@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-
+/// D. Словарь
 public class TaskD {
     public static void main(String[] args) throws IOException {
         FastScanner fastScanner = new FastScanner(System.in);
